@@ -2,7 +2,7 @@
 This project demonstrates how to add authentication to a Flask app with Flask-Login. It allows users to log in and access protected pages, and displays information from the user's account on their profile page.
 Project Structure
 
-The file structure of the project looks like this:
+## The file structure of the project looks like this:
 
     Flask-Authentication-System
     └── project
@@ -18,31 +18,31 @@ The file structure of the project looks like this:
             ├── profile.html  # show the profile page
             └── signup.html   # show the signup form
 
-Installation
+## Installation
 
-    Clone the repository and navigate to the project directory:
+### Clone the repository and navigate to the project directory:
 
-git clone https://github.com/JWebster-Colby/Flask-Authentication-System.git
-cd Flask-Authentication-System
+    git clone https://github.com/JWebster-Colby/Flask-Authentication-System.git
+    cd Flask-Authentication-System
 
-    Create a virtual environment and activate it:
+### Create a virtual environment and activate it:
 
-python3 -m venv auth
-source auth/bin/activate
+    python3 -m venv auth
+    source auth/bin/activate
 
-    Install the required packages:
+### Install the required packages:
 
-pip install flask flask-sqlalchemy flask-login
-or
-pip install -r requirements.txt
+    pip install flask flask-sqlalchemy flask-login
+    or
+    pip install -r requirements.txt
 
-Usage
+## Usage
 
-    Set the FLASK_APP and FLASK_DEBUG environment variables:
+Set the FLASK_APP and FLASK_DEBUG environment variables:
 
-export FLASK_APP=project
-export FLASK_DEBUG=1
+    export FLASK_APP=project
+    export FLASK_DEBUG=1
 
-    Run the Flask application:
+Run the Flask application:
 
-flask run
+    flask run
