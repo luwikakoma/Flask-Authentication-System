@@ -3,60 +3,72 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, login_required, logout_user
 from .models import User
 from . import db
+from .forms import LoginForm, RegisterForm
+import bcrypt
 
 auth = Blueprint('auth', __name__)
 
 @auth.route('/login')
 def login():
-    return render_template('login.html')
+    form = LoginForm()
+    return render_template('login.html', form=form)
 
 @auth.route('/login', methods=['POST'])
 def login_post():
-    # Login Code Goes Here
-    email = request.form.get('email')
-    password = request.form.get('password')
-    remember = True if request.form.get('remember') else False
+    form = LoginForm()
+    if form.validate_on_submit():
+        # Login Code Goes Here
+        email = request.form.get('email')
+        password = request.form.get('password')
+        remember = True if request.form.get('remember') else False
 
-    user = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(email=email).first()
 
-    # Chech if user exists, hash provided pass and compare
-    if not user or not check_password_hash(user.password, password):
-        flash('Please check logindetails and try again!')
-        return redirect(url_for('auth.login'))
+        # Check if user exists and compare hashed password
+        if not user or not bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
+            flash('Please check login details and try again!')
+            return redirect(url_for('auth.login'))
 
-    # if all checks pass redirect to profile page
-    login_user(user, remember=remember)
-    return redirect(url_for('main.profile'))
+        # if all checks pass, log in the user
+        login_user(user, remember=remember)
+        return redirect(url_for('main.profile'))
 
 @auth.route('/signup')
 def signup():
-    return render_template('signup.html')
+    form = RegisterForm()
+    return render_template('signup.html', form=form)
 
 @auth.route('/signup', methods=['POST'])
 def signup_post():
-    # code to validate and add user to db goes here
-    email = request.form.get('email')
-    name = request.form.get('name')
-    password = request.form.get('password')
+    form = RegisterForm()
+    if form.validate_on_submit():
+        # code to validate and add user to db goes here
+        email = request.form.get('email')
+        name = request.form.get('name')
+        password = request.form.get('password')
 
-    # check if email already exists in db
-    user = User.query.filter_by(email=email).first()
+        # check if email already exists in db
+        user = User.query.filter_by(email=email).first()
 
-    # if user already exists redirect back to signup page to retry
-    if user:
-        flash('User already exists!')
-        return redirect(url_for('auth.signup'))
+        # if user already exists redirect back to signup page to retry
+        if user:
+            flash('User already exists!')
+            return redirect(url_for('auth.signup'))
 
-    # Create a new user with the data from the form and hash the pass for security
-    new_user = User(email=email, name=name, password=generate_password_hash(password, method='sha256')) 
+        # Hash the password with bcrypt
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-    # Add New User to db
-    db.session.add(new_user)
-    db.session.commit()
-    return redirect(url_for('auth.login'))
+        # Create a new user with the data from the form and hashed password
+        new_user = User(email=email, name=name, password=hashed_password) 
+
+        # Add New User to db
+        db.session.add(new_user)
+        db.session.commit()
+        return redirect(url_for('auth.login'))
 
 @auth.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('main.index'))
+
