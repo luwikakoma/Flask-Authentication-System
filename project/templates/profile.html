@@ -1,7 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="title">
-  Welcome, {{ name }}!
-</h1>
+<div class="column is-4 is-offset-4">
+    <h1 class="title">
+        Welcome, {{ name }}!
+    </h1>
+    <h2 class="subtitle">
+        Role: {{ current_user.roles[0].name }}
+    </h2>
+</div>
 {% endblock %}

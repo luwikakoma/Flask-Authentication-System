@@ -1,9 +1,9 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, login_required, logout_user
-from .models import User
+from .models import User, UserRole
 from . import db
-from .forms import LoginForm, RegisterForm
+from .forms import LoginForm, RegisterForm, CreateUserForm
 import bcrypt
 
 auth = Blueprint('auth', __name__)
@@ -46,10 +46,10 @@ def signup_post():
         email = request.form.get('email')
         name = request.form.get('name')
         password = request.form.get('password')
-
+        
         # check if email already exists in db
         user = User.query.filter_by(email=email).first()
-
+        
         # if user already exists redirect back to signup page to retry
         if user:
             flash('User already exists!')
@@ -58,13 +58,51 @@ def signup_post():
         # Hash the password with bcrypt
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-        # Create a new user with the data from the form and hashed password
-        new_user = User(email=email, name=name, password=hashed_password) 
+        # Fetch the role 'user' from the database
+        role = UserRole.query.filter_by(name='user').first()
+
+        # Create a new user with the data from the form, hashed password, and 'user' role
+        new_user = User(email=email, name=name, password=hashed_password, roles=[role])
 
         # Add New User to db
         db.session.add(new_user)
         db.session.commit()
         return redirect(url_for('auth.login'))
+
+@auth.route('/create-user', methods=['GET', 'POST'])
+@login_required
+def create_user():
+    form = CreateUserForm()
+    if form.validate_on_submit():
+        email = form.email.data
+        name = form.name.data
+        password = form.password.data
+        role_name = form.role.data
+
+        # Check if email aready exists
+        user = User.query.filter_by(email=email).first()
+
+        # If user already exists redirect back to create user page
+        if user:
+            flash('User already exists!', 'danger')
+            return redirect(url_for('auth.create_user'))
+
+        # Hash the password with bcrypt
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+        # Get role
+        role = UserRole.query.filter_by(name=role_name).first()
+
+        # Create a new user with the data from the form, hashed password and role
+        new_user = User(email=email, name=name, password=hashed_password, roles=[role])
+
+        # Add new user to db
+        db.session.add(new_user)
+        db.session.commit()
+
+        flash('User created Successfully!', 'success')
+        return redirect(url_for('auth.create_user'))
+    return render_template('create_user.html', form=form)
 
 @auth.route('/logout')
 @login_required
