@@ -4,11 +4,12 @@
 <div class="column is-4 is-offset-4">
     <h3 class="title">Login</h3>
     <div class="box">
-        <!-- Display error message  -->
         {% with messages = get_flashed_messages() %}
         {% if messages %}
         <div class="notification is-danger">
-            {{ messages[0] }}
+            {% for message in messages %}
+            {{ message }}<br>
+            {% endfor %}
         </div>
         {% endif %}
         {% endwith %}
@@ -16,7 +17,6 @@
         <form method="POST">
             {{ form.hidden_tag() }}
             {{ form.csrf_token }}
-            <!-- other form fields here -->
             {{ form.email(class='input is-large', placeholder='Your Email') }}
             {{ form.password(class='input is-large', placeholder='Your Password') }}
             {{ form.remember() }} Remember me
