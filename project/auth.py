@@ -4,7 +4,9 @@ from flask_login import login_user, login_required, logout_user, current_user
 from .models import User, UserRole
 from . import db
 from .forms import LoginForm, RegisterForm, CreateUserForm, ProfileEditForm
-import bcrypt
+from flask_bcrypt import Bcrypt
+
+bcrypt = Bcrypt()  # Initialize Flask-Bcrypt
 
 auth = Blueprint('auth', __name__)
 
@@ -17,60 +19,52 @@ def login():
 def login_post():
     form = LoginForm()
     if form.validate_on_submit():
-        # Login Code Goes Here
         email = request.form.get('email')
         password = request.form.get('password')
         remember = True if request.form.get('remember') else False
 
         user = User.query.filter_by(email=email).first()
 
-        # Check if user exists and compare hashed password
-        if not user or not bcrypt.checkpw(password.encode('utf-8'), user.password):
+        # Check if user exists and verify password
+        if not user or not bcrypt.check_password_hash(user.password, password):
             flash('Please check login details and try again!')
             return redirect(url_for('auth.login'))
 
-        # if all checks pass, log in the user
+        # Log in the user
         login_user(user, remember=remember)
         return redirect(url_for('main.profile'))
 
-@auth.route('/signup')
-def signup():
-    form = RegisterForm()
-    return render_template('signup.html', form=form)
 
 @auth.route('/signup', methods=['POST'])
-def signup_post():
+def signup():
     form = RegisterForm()
     if form.validate_on_submit():
-        # code to validate and add user to db goes here
         email = request.form.get('email')
         name = request.form.get('name')
         password = request.form.get('password')
-        
-        # check if email already exists in db
+
+        # Check if email already exists
         user = User.query.filter_by(email=email).first()
-        
-        # if user already exists redirect back to signup page to retry
         if user:
             flash('User already exists!')
             return redirect(url_for('auth.signup'))
 
-        # Hash the password with bcrypt
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        # Hash password correctly
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
         # Fetch the role 'user' from the database
         role = UserRole.query.filter_by(name='user').first()
 
-        # Create a new user with the data from the form, hashed password, and 'user' role
+        # Create a new user with the hashed password
         new_user = User(email=email, name=name, password=hashed_password, roles=[role])
 
-        # Add New User to db
+        # Save user
         db.session.add(new_user)
         db.session.commit()
         return redirect(url_for('auth.login'))
 
-@auth.route('/create-user', methods=['GET', 'POST'])
-# @login_required
+
+@auth.route('/create-user', methods=['POST'])
 def create_user():
     form = CreateUserForm()
     if form.validate_on_submit():
@@ -81,16 +75,16 @@ def create_user():
         name = form.name.data
         password = form.password.data
 
-        # check if a user exists
+        # Check if email exists
         user = User.query.filter_by(email=email).first()
         if user:
             flash('Email already exists')
             return redirect(url_for('auth.create_user'))
 
-        # hash the password
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        # Hash the password correctly
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-        # create a new user
+        # Create a new user
         new_user = User(email=email, name=name, password=hashed_password, roles=roles)
 
         db.session.add(new_user)
@@ -98,6 +92,7 @@ def create_user():
         flash('User created successfully')
         return redirect(url_for('auth.create_user'))
     return render_template('create_user.html', form=form)
+
 
 @auth.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
