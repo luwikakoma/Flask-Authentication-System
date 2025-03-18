@@ -1,65 +1,201 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Flask Auth Example</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}File Sharing System{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css" type="text/css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    {% block head %}{% endblock %}
 </head>
-
 <body>
-    <section class="hero is-primary is-fullheight">
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>File System</h2>
+            </div>
+            <nav class="sidebar-menu">
+                <ul>
+                    <li class="{% if active_page == 'all_files' %}active{% endif %}">
+                        <a href="{{ url_for('main.home') }}"><i class="fas fa-file"></i> All Files</a>
+                    </li>
+                    <li class="{% if active_page == 'recents' %}active{% endif %}">
+                        <a href="#"><i class="fas fa-clock"></i> Recents</a>
+                    </li>
+                    <li class="{% if active_page == 'trash' %}active{% endif %}">
+                        <a href="#"><i class="fas fa-trash"></i> Trash</a>
+                    </li>
+                    <li class="{% if active_page == 'settings' %}active{% endif %}">
+                        <a href="#"><i class="fas fa-cog"></i> Settings</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('auth.logout') }}" class="navbar-item">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                {% endif %}
+        </aside>
 
-        <div class="hero-head">
-            <nav class="navbar">
-                <div class="container">
-                    <div id="navbarMenuHeroA" class="navbar-menu">
-                        <div class="navbar-end">
-                            <a href="{{ url_for('main.index') }}" class="navbar-item">
-                                Home
-                            </a>
-                            <!-- make only visible to authenticated users -->
-                            {% if current_user.is_authenticated %}
-                            {% if 'admin' in current_user.roles[0].name %}
-                            <a href="{{ url_for('auth.create_user') }}" class="navbar-item">Create User</a>
-                            {% endif %}
-                            <a href="{{ url_for('main.profile') }}" class="navbar-item">
-                                Profile
-                            </a>
-                            {% endif %}
-
-                            <!-- Make only visible if user is not authenticated -->
-                            {% if not current_user.is_authenticated %}
-                            <a href="{{ url_for('auth.login') }}" class="navbar-item">
-                                Login
-                            </a>
-                            <a href="{{ url_for('auth.signup') }}" class="navbar-item">
-                                Sign Up
-                            </a>
-                            {% endif %}
-                            <!-- make only visible to authenticated users -->
-                            {% if current_user.is_authenticated %}
-                            <a href="{{ url_for('auth.logout') }}" class="navbar-item">
-                                Logout
-                            </a>
-                            {% endif %}
-                        </div>
+        <main class="main-content">
+            <header class="main-header">
+                <div class="search-container">
+                    <input type="text" placeholder="Search files..." class="search-input">
+                    <button class="search-btn"><i class="fas fa-search"></i></button>
+                </div>
+                <div class="user-profile">
+                    {% if name %}
+                        <span class="welcome-msg">{{ name }}</span>
+                    {% endif %}
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
                     </div>
                 </div>
-            </nav>
-        </div>
+            </header>
 
-        <div class="hero-body">
-            <div class="container has-text-centered">
-                {{current_user.role}}
-                {% block content %}
-                {% endblock %}
+            <div class="content-area">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            
+                {% block content %}{% endblock %}
             </div>
-        </div>
-    </section>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-</body>
+        </main>
+    </div>
 
+    <!-- Modal templates -->
+    <div id="upload-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Upload File</h2>
+            <form action="{{ url_for('main.upload_file') }}" method="post" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                {{ form.csrf_token }}
+                <div class="form-group">
+                    <label for="file">Select file</label>
+                    <input type="file" id="file" name="file" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Upload</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="delete-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Delete File</h2>
+            <form action="{{ url_for('main.delete_file') }}" method="post">
+                <div class="form-group">
+                    <label for="choose">Select file to delete</label>
+                    <select id="choose" name="choose" required>
+                        {% for file in files %}
+                            <option value="{{ file }}">{{ file }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+        </div>
+    </div>
+
+
+    <script>
+        // JavaScript for modal functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Upload modal
+            const uploadBtn = document.getElementById('upload-btn');
+            const uploadModal = document.getElementById('upload-modal');
+            const uploadClose = uploadModal.querySelector('.close');
+            
+            if (uploadBtn) {
+                uploadBtn.addEventListener('click', function() {
+                    uploadModal.style.display = 'flex';
+                });
+            }
+            
+            if (uploadClose) {
+                uploadClose.addEventListener('click', function() {
+                    uploadModal.style.display = 'none';
+                });
+            }
+            
+            // Delete modal
+            const deleteBtn = document.getElementById('delete-btn');
+            const deleteModal = document.getElementById('delete-modal');
+            const deleteClose = deleteModal.querySelector('.close');
+            
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', function() {
+                    deleteModal.style.display = 'block';
+                });
+            }
+            
+            if (deleteClose) {
+                deleteClose.addEventListener('click', function() {
+                    deleteModal.style.display = 'none';
+                });
+            }
+            
+            // Password modal
+            const passwordBtn = document.getElementById('password-btn');
+            const passwordModal = document.getElementById('password-modal');
+            const passwordClose = passwordModal.querySelector('.close');
+            
+            if (passwordBtn) {
+                passwordBtn.addEventListener('click', function() {
+                    passwordModal.style.display = 'block';
+                });
+            }
+            
+            if (passwordClose) {
+                passwordClose.addEventListener('click', function() {
+                    passwordModal.style.display = 'none';
+                });
+            }
+            
+            // Close all modals when clicking outside
+            window.addEventListener('click', function(event) {
+                if (event.target == uploadModal) {
+                    uploadModal.style.display = 'none';
+                }
+                if (event.target == deleteModal) {
+                    deleteModal.style.display = 'none';
+                }
+                if (event.target == passwordModal) {
+                    passwordModal.style.display = 'none';
+                }
+            });
+        });
+
+        //Javasecript for alert timeout
+                // Function to fade out the alert
+        function fadeOutAlert(alertElement) {
+            alertElement.style.transition = "opacity 1s ease-out";  // Add transition effect
+            alertElement.style.opacity = 0;  // Set opacity to 0 (fade out)
+            
+            // After the fade-out transition ends, remove the alert element
+            setTimeout(function() {
+                alertElement.style.visibility = 'hidden';  // Set visibility to hidden
+                alertElement.remove();  // Remove the alert from the DOM
+            }, 1000);  // Timeout should match the duration of the fade-out (1s)
+        }
+
+        // Get all alerts on the page
+        document.querySelectorAll('.alert').forEach(function(alert) {
+            // Call the fadeOutAlert function after 3 seconds
+            setTimeout(function() {
+                fadeOutAlert(alert);
+            }, 3000);  // 3000ms = 3 seconds
+        });
+    </script>
+</body>
 </html>

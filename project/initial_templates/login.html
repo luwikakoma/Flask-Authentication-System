@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="column is-4 is-offset-4">
+    <h3 class="title">Login</h3>
+    <div class="box">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="notification is-danger">
+            {% for message in messages %}
+            {{ message }}<br>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            {{ form.csrf_token }}
+            {{ form.email(class='input is-large', placeholder='Your Email') }}
+            {{ form.password(class='input is-large', placeholder='Your Password') }}
+            {{ form.remember() }} Remember me
+
+            <button class="button is-block is-info is-large is-fullwidth">Login</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

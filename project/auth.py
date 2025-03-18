@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash
+from flask import Blueprint, render_template, redirect, url_for, request, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, login_required, logout_user, current_user
 from .models import User, UserRole
@@ -10,16 +10,16 @@ bcrypt = Bcrypt()  # Initialize Flask-Bcrypt
 
 auth = Blueprint('auth', __name__)
 
-@auth.route('/login')
+@auth.route('/')
 def login():
-    form = LoginForm()
+    form = LoginForm() 
     return render_template('login.html', form=form)
 
 @auth.route('/login', methods=['POST'])
 def login_post():
     form = LoginForm()
     if form.validate_on_submit():
-        email = request.form.get('email')
+        email = request.form.get('email') 
         password = request.form.get('password')
         remember = True if request.form.get('remember') else False
 
@@ -32,11 +32,16 @@ def login_post():
 
         # Log in the user
         login_user(user, remember=remember)
-        return redirect(url_for('main.profile'))
+        return redirect(url_for('main.home'))
+    
 
+@auth.route('/signup')
+def signup():
+    form = RegisterForm()
+    return render_template('signup.html', form=form)
 
 @auth.route('/signup', methods=['POST'])
-def signup():
+def signup_post():
     form = RegisterForm()
     if form.validate_on_submit():
         email = request.form.get('email')
@@ -64,7 +69,7 @@ def signup():
         return redirect(url_for('auth.login'))
 
 
-@auth.route('/create-user', methods=['POST'])
+@auth.route('/create_user', methods=['POST'])
 def create_user():
     form = CreateUserForm()
     if form.validate_on_submit():
@@ -105,7 +110,7 @@ def edit_profile():
         
         db.session.commit()
         flash('Your profile has been updated.')
-        return redirect(url_for('main.profile'))
+        return redirect(url_for('main.home'))
     
     elif request.method == 'GET':
         form.name.data = current_user.name
@@ -117,6 +122,6 @@ def edit_profile():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('main.index'))
+    return redirect(url_for('auth.login'))
 
 

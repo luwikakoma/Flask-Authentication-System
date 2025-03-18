@@ -14,7 +14,7 @@ csrf = CSRFProtect()
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[InputRequired(), Email(), Length(max=50)])
     password = PasswordField('Password', validators=[InputRequired(), Length(min=8, max=80)])
-    remember = BooleanField('Remember Me')
+    #remember = BooleanField('Remember Me')
 
 class RegisterForm(FlaskForm):
     email = StringField('Email', validators=[InputRequired(), Email(), Length(max=50)])
