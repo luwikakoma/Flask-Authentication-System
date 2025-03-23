@@ -77,9 +77,8 @@
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2>Upload File</h2>
-            <form action="{{ url_for('main.upload_file') }}" method="post" enctype="multipart/form-data">
-                {{ form.hidden_tag() }}
-                {{ form.csrf_token }}
+            <form action="{{ url_for('main.upload_file', foldername=foldername) }}" method="post" enctype="multipart/form-data">
+                {{ upload_file_form.hidden_tag() }}
                 <div class="form-group">
                     <label for="file">Select file</label>
                     <input type="file" id="file" name="file" required>
@@ -89,11 +88,29 @@
         </div>
     </div>
 
+    <!-- Folder Creation Modal -->
+    <div id="create-folder-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Create a New Folder</h2>
+            <form action="{{ url_for('main.create_folder') }}" method="POST">
+                {{ create_folder_form.hidden_tag() }}
+                <div class="form-group">
+                    <label for="foldername">Folder Name</label>
+                    <input type="text" id="foldername" name="foldername" placeholder="Enter folder name" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Create Folder</button>
+            </form>
+        </div>
+    </div>
+
+
     <div id="delete-modal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2>Delete File</h2>
-            <form action="{{ url_for('main.delete_file') }}" method="post">
+            <form action="{{ url_for('main.delete_file', foldername=foldername) }}" method="post">
+                {{ delete_file_form.hidden_tag() }}
                 <div class="form-group">
                     <label for="choose">Select file to delete</label>
                     <select id="choose" name="choose" required>
@@ -109,93 +126,109 @@
 
 
     <script>
-        // JavaScript for modal functionality
+    // JavaScript for modal functionality
         document.addEventListener('DOMContentLoaded', function() {
-            // Upload modal
-            const uploadBtn = document.getElementById('upload-btn');
-            const uploadModal = document.getElementById('upload-modal');
-            const uploadClose = uploadModal.querySelector('.close');
-            
-            if (uploadBtn) {
-                uploadBtn.addEventListener('click', function() {
-                    uploadModal.style.display = 'flex';
-                });
-            }
-            
-            if (uploadClose) {
-                uploadClose.addEventListener('click', function() {
-                    uploadModal.style.display = 'none';
-                });
-            }
-            
-            // Delete modal
-            const deleteBtn = document.getElementById('delete-btn');
-            const deleteModal = document.getElementById('delete-modal');
-            const deleteClose = deleteModal.querySelector('.close');
-            
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', function() {
-                    deleteModal.style.display = 'block';
-                });
-            }
-            
-            if (deleteClose) {
-                deleteClose.addEventListener('click', function() {
-                    deleteModal.style.display = 'none';
-                });
-            }
-            
-            // Password modal
-            const passwordBtn = document.getElementById('password-btn');
-            const passwordModal = document.getElementById('password-modal');
-            const passwordClose = passwordModal.querySelector('.close');
-            
-            if (passwordBtn) {
-                passwordBtn.addEventListener('click', function() {
-                    passwordModal.style.display = 'block';
-                });
-            }
-            
-            if (passwordClose) {
-                passwordClose.addEventListener('click', function() {
-                    passwordModal.style.display = 'none';
-                });
-            }
-            
-            // Close all modals when clicking outside
-            window.addEventListener('click', function(event) {
-                if (event.target == uploadModal) {
-                    uploadModal.style.display = 'none';
-                }
-                if (event.target == deleteModal) {
-                    deleteModal.style.display = 'none';
-                }
-                if (event.target == passwordModal) {
-                    passwordModal.style.display = 'none';
-                }
-            });
-        });
+    // Upload modal
+        const uploadBtn = document.getElementById('upload-btn');
+        const uploadModal = document.getElementById('upload-modal');
+        const uploadClose = uploadModal?.querySelector('.close');
 
-        //Javasecript for alert timeout
-                // Function to fade out the alert
-        function fadeOutAlert(alertElement) {
-            alertElement.style.transition = "opacity 1s ease-out";  // Add transition effect
-            alertElement.style.opacity = 0;  // Set opacity to 0 (fade out)
-            
-            // After the fade-out transition ends, remove the alert element
-            setTimeout(function() {
-                alertElement.style.visibility = 'hidden';  // Set visibility to hidden
-                alertElement.remove();  // Remove the alert from the DOM
-            }, 1000);  // Timeout should match the duration of the fade-out (1s)
+        if (uploadBtn) {
+            uploadBtn.addEventListener('click', function() {
+                uploadModal.style.display = 'flex';
+            });
         }
 
-        // Get all alerts on the page
+        if (uploadClose) {
+            uploadClose.addEventListener('click', function() {
+                uploadModal.style.display = 'none';
+            });
+        }
+
+        // Delete modal
+        const deleteBtn = document.getElementById('delete-btn');
+        const deleteModal = document.getElementById('delete-modal');
+        const deleteClose = deleteModal?.querySelector('.close');
+
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function() {
+                deleteModal.style.display = 'flex';
+            });
+        }
+
+        if (deleteClose) {
+            deleteClose.addEventListener('click', function() {
+                deleteModal.style.display = 'none';
+            });
+        }
+
+        // Password modal
+        const passwordBtn = document.getElementById('password-btn');
+        const passwordModal = document.getElementById('password-modal');
+        const passwordClose = passwordModal?.querySelector('.close');
+
+        if (passwordBtn) {
+            passwordBtn.addEventListener('click', function() {
+                passwordModal.style.display = 'flex';
+            });
+        }
+
+        if (passwordClose) {
+            passwordClose.addEventListener('click', function() {
+                passwordModal.style.display = 'none';
+            });
+        }
+
+        // Create Folder Modal
+        const createFolderBtn = document.getElementById('create-folder-btn');
+        const createFolderModal = document.getElementById('create-folder-modal');
+        const createFolderClose = createFolderModal?.querySelector('.close');
+
+        if (createFolderBtn) {
+            createFolderBtn.addEventListener('click', function() {
+                createFolderModal.style.display = 'flex';
+            });
+        }
+
+        if (createFolderClose) {
+            createFolderClose.addEventListener('click', function() {
+                createFolderModal.style.display = 'none';
+            });
+        }
+
+        // Close all modals when clicking outside
+        window.addEventListener('click', function(event) {
+            if (event.target === uploadModal) {
+                uploadModal.style.display = 'none';
+            }
+            if (event.target === deleteModal) {
+                deleteModal.style.display = 'none';
+            }
+            if (event.target === passwordModal) {
+                passwordModal.style.display = 'none';
+            }
+            if (event.target === createFolderModal) {
+                createFolderModal.style.display = 'none';
+            }
+        });
+
+        // JavaScript for alert timeout
+        function fadeOutAlert(alertElement) {
+            alertElement.style.transition = "opacity 1s ease-out";
+            alertElement.style.opacity = 0;
+
+            setTimeout(function() {
+                alertElement.style.visibility = 'hidden';
+                alertElement.remove();
+            }, 1000);
+        }
+
         document.querySelectorAll('.alert').forEach(function(alert) {
-            // Call the fadeOutAlert function after 3 seconds
             setTimeout(function() {
                 fadeOutAlert(alert);
-            }, 3000);  // 3000ms = 3 seconds
+            }, 3000);
         });
+    });
     </script>
 </body>
 </html>

@@ -12,16 +12,18 @@ auth = Blueprint('auth', __name__)
 
 @auth.route('/')
 def login():
-    form = LoginForm() 
-    return render_template('login.html', form=form)
+    login_form = LoginForm() 
+    return render_template('login.html', login_form = login_form)
 
 @auth.route('/login', methods=['POST'])
 def login_post():
-    form = LoginForm()
-    if form.validate_on_submit():
-        email = request.form.get('email') 
-        password = request.form.get('password')
-        remember = True if request.form.get('remember') else False
+    login_form = LoginForm()  
+
+    if login_form.validate_on_submit():
+
+        email = login_form.email.data  
+        password = login_form.password.data  
+        #remember = login_form.remember.data if login_form.remember.data else False  # Correct way to check remember
 
         user = User.query.filter_by(email=email).first()
 
@@ -31,9 +33,12 @@ def login_post():
             return redirect(url_for('auth.login'))
 
         # Log in the user
-        login_user(user, remember=remember)
+        login_user(user)
         return redirect(url_for('main.home'))
-    
+
+    # If the form is not valid, redirect back to login page
+    flash('Invalid form data, please try again')
+    return redirect(url_for('auth.login'))
 
 @auth.route('/signup')
 def signup():
@@ -124,4 +129,6 @@ def logout():
     logout_user()
     return redirect(url_for('auth.login'))
 
-
+@auth.route('/forgot_password')
+def forgot_password():
+    return render_template('signup.html') #change to forgot password route later

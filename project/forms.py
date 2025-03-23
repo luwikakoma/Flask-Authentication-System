@@ -1,9 +1,10 @@
 from flask_wtf import FlaskForm
 from flask_wtf.csrf import CSRFProtect
-from wtforms import StringField, PasswordField, BooleanField, SelectField, SubmitField
-from wtforms import RadioField, SelectMultipleField, widgets
-from wtforms.validators import InputRequired, Email, Length
+from wtforms import StringField, FileField, SelectField, PasswordField, SubmitField
+from wtforms import  SelectMultipleField, widgets
+from wtforms.validators import InputRequired, Email, Length, DataRequired
 from .models import UserRole
+from flask import request
 
 class MultiCheckboxField(SelectMultipleField):
     widget = widgets.ListWidget(prefix_label=False)
@@ -53,3 +54,15 @@ class ProfileEditForm(FlaskForm):
     password = PasswordField('New Password (Leave blank to keep current password)')
     
     submit = SubmitField('Update')
+
+class UploadFileForm(FlaskForm):
+    file = FileField('Select file', validators=[DataRequired()])
+    submit = SubmitField('Upload')
+
+class CreateFolderForm(FlaskForm):
+    foldername = StringField('Folder Name', validators=[DataRequired()])
+    submit = SubmitField('Create Folder')
+
+class DeleteFileForm(FlaskForm):
+    choose = SelectField('Select file to delete', validators=[DataRequired()])
+    submit = SubmitField('Delete')

@@ -1,23 +1,12 @@
 {% extends "base.html" %}
-{% set active_page = 'all_files' %}
-
 {% block title %}Home - File Sharing System{% endblock %}
 
 {% block content %}
 <div class="content-header">
     <div class="title-section">
-        <h1>All Files</h1>
-        
-        {% if error2 %}
-            <div class="welcome-banner">{{ error2 }}</div>
-        {% endif %}
+        <h1>All Folders</h1>
     </div>
     <div class="action-buttons">
-        <div class="dropdown">
-            <button class="btn btn-primary btn-with-icon" id="upload-btn">
-                <i class="fas fa-upload"></i> Upload
-            </button>
-        </div>
         <button class="btn btn-outline" id="create-folder-btn">
             <i class="fas fa-folder-plus"></i> Create Folder
         </button>
@@ -25,64 +14,25 @@
 </div>
 
 <div class="files-container">
-    {% if files %}
-    <table class="files-table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Last Modified</th>
-                <th>Type</th>
-                <th>Size</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for file in files %}
-                <tr>
-                    <td class="file-name">
-                        <i class="fas fa-file-{{ file.filename.split('.')[-1]|lower }}"></i>
-                        {{ file.filename }}
-                    </td>
-                    <td>{{ file.uploaded_at }}</td>
-                    <td>{{ file.file_type }}</td>
-                    <td>{{ file.file_size }}</td>
-                    <td class="file-actions">
-                        <form action="{{ url_for('main.download_file') }}" method="post" style="display: inline;">
-                            <input type="hidden" name="filename" value="{{ file.filename }}">
-                            <button type="submit" class="action-btn text-success" title="Download">
-                                <i class="fas fa-download"></i>
-                            </button>
-                        </form>
-                        <form action="{{ url_for('main.delete_file') }}" method="post" style="display: inline;">
-                            <input type="hidden" name="choose" value="{{ file.filename }}">
-                            <button type="submit" class="action-btn text-danger" title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    {% if folders %}
+    <ul class="folder-list">
+        {% for folder in folders %}
+        <li class="folder-item">
+            <a href="{{ url_for('main.view_folder', foldername=folder) }}">
+                <i class="fas fa-folder"></i> {{ folder }}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
     {% else %}
     <div class="empty-state">
         <i class="fas fa-folder-open fa-4x"></i>
-        <h3>No files uploaded yet</h3>
-        <p>Upload your first file to get started.</p>
-        <button class="btn btn-primary" id="empty-upload-btn">Upload File</button>
+        <h3>No folders created yet</h3>
+        <p>Create a folder to start organizing your files.</p>
+        <button class="btn btn-primary" id="empty-upload-btn">Create Folder</button>
     </div>
     {% endif %}
+
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const emptyUploadBtn = document.getElementById('empty-upload-btn');
-        if (emptyUploadBtn) {
-            emptyUploadBtn.addEventListener('click', function() {
-                document.getElementById('upload-modal').style.display = 'flex';
-            });
-        }
-    });
-    
-</script>
 {% endblock %}
