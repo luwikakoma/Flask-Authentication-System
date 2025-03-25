@@ -198,6 +198,7 @@ ul {
 .content-area {
     padding: 20px;
     flex: 1;
+    position: relative;
 }
 
 .content-header {
@@ -508,6 +509,12 @@ ul {
     margin-bottom: 20px;
     font-size: 14px;
     transition: opacity 0.5s ease-out;
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    
 }
 
 /* Danger alert */
@@ -641,3 +648,9 @@ ul {
 .folder-list a:hover {
     text-decoration: underline;
 }
+
+/* Hide the Bootstrap dropdown caret */
+.dropdown-toggle::after {
+    display: none !important;
+}
+

@@ -52,3 +52,12 @@ h1.h2 {
 .page-link:hover {
     color: #0056b3;
 }
+
+.file-icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+    margin-left: 15px;
+    vertical-align: middle;
+}
+

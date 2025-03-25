@@ -188,9 +188,61 @@ def view_folder(foldername):
         create_folder_form=create_folder_form, 
         delete_file_form=delete_file_form, 
         files=files,
+        get_file_icon=get_file_icon,
+        name=current_user.name,
         current_page=page,
         total_pages=total_pages
     )
+
+
+def get_file_icon(file_type):
+    """
+    Return a Font Awesome icon class based on file type
+    """
+    file_type = file_type.lower()
+    
+    # Document types
+    if file_type in ['doc', 'docx', 'odt', 'rtf']:
+        return 'fas fa-file-word text-primary'
+    
+    # PDF types
+    if file_type == 'pdf':
+        return 'fas fa-file-pdf text-danger'
+    
+    # Spreadsheet types
+    if file_type in ['xls', 'xlsx', 'csv', 'ods']:
+        return 'fas fa-file-excel text-success'
+    
+    # Presentation types
+    if file_type in ['ppt', 'pptx', 'odp']:
+        return 'fas fa-file-powerpoint text-warning'
+    
+    # Image types
+    if file_type in ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp']:
+        return 'fas fa-file-image text-info'
+    
+    # Audio types
+    if file_type in ['mp3', 'wav', 'ogg', 'flac', 'm4a']:
+        return 'fas fa-file-audio text-secondary'
+    
+    # Video types
+    if file_type in ['mp4', 'avi', 'mov', 'mkv', 'wmv']:
+        return 'fas fa-file-video text-dark'
+    
+    # Compressed files
+    if file_type in ['zip', 'rar', '7z', 'gz', 'tar']:
+        return 'fas fa-file-archive text-danger'
+    
+    # Code files
+    if file_type in ['py', 'js', 'html', 'css', 'java', 'cpp', 'c', 'php', 'rb']:
+        return 'fas fa-file-code text-warning'
+    
+    # Text files
+    if file_type in ['txt', 'log', 'md']:
+        return 'fas fa-file-alt text-muted'
+    
+    # Default generic file icon
+    return 'fas fa-file text-secondary'
 
 def _get_readable_size(size):
     """Convert file size to human-readable format."""
@@ -200,7 +252,7 @@ def _get_readable_size(size):
         size /= 1024.0
     return f"{size:.1f} TB"
 
-@main.route('/download/<foldername>')
+@main.route('/download/<foldername>/<filename>')
 def download_file(foldername, filename):
     """Download a file from a specific folder."""
     file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], foldername, filename)
@@ -211,7 +263,7 @@ def download_file(foldername, filename):
         flash('File not found!', 'danger')
         return redirect(url_for('main.view_folder', foldername=foldername, filename=filename))
 
-@main.route('/delete/<foldername>', methods=['GET', 'POST'])
+@main.route('/delete/<foldername>/<filename>', methods=['GET', 'POST'])
 def delete_file(foldername, filename):
     """Delete a file from a specific folder."""
     file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], foldername, filename)
